@@ -16,11 +16,13 @@ LexicalAnalyzer::~LexicalAnalyzer() {
 }
 
 TokenType LexicalAnalyzer::getKeywordOrIdentifier(const std::string& lexeme) {
-    if (lexeme == "program" || lexeme == "var" || lexeme == "begin" || lexeme == "end" || lexeme == "for" ||
-        lexeme == "if" || lexeme == "then" || lexeme == "do" || lexeme == "to" || lexeme == "write" ||
-        lexeme == "integer" || lexeme == "array" || lexeme == "of" || lexeme == "randomize" || lexeme == "halt") {
-        return TokenType::KEYWORD;
-    }
+    if (lexeme == "program") return TokenType::PROGRAM;
+    if (lexeme == "begin") return TokenType::BEGIN;
+    if (lexeme == "end") return TokenType::END;
+    if (lexeme == "integer") return TokenType::TYPE;
+    if (lexeme == "for") return TokenType::OP;
+    if (lexeme == "to") return TokenType::EXPR;
+    if (lexeme == "do") return TokenType::OPERATORS;
     return TokenType::ID_NAME;
 }
 
@@ -28,12 +30,14 @@ TokenType LexicalAnalyzer::getNumber(const std::string& lexeme) {
     return TokenType::INT_NUM;
 }
 
-bool LexicalAnalyzer::isOperator(char c) const {
-    return (c == '+' || c == '-' || c == '*' || c == '/' || c == ':' || c == '=' || c == '<' || c == '>');
+bool LexicalAnalyzer::isOperator(const std::string& str) const {
+    return (str == "+" || str == "-" || str == "*" || str == "/" ||
+        str == ":" || str == "=" || str == "<" || str == ">" ||
+        str == "..");
 }
 
 bool LexicalAnalyzer::isDelimiter(char c) const {
-    return (c == '(' || c == ')' || c == '[' || c == ']' || c == ',' || c == ';' || c == '.' || c == '\'' || c == '\"');
+    return (c == '(' || c == ')' || c == '[' || c == ']' || c == ',' || c == ';' ||  c == '\'' || c == '\"' || c == '.');
 }
 
 void LexicalAnalyzer::handleOperators(char c) {
@@ -44,7 +48,7 @@ void LexicalAnalyzer::handleOperators(char c) {
             op += c; // ':='
         }
         else {
-            inputFile.unget(); // Если не '=', возвращаем назад
+            inputFile.unget(); // Р•СЃР»Рё РЅРµ '=', РІРѕР·РІСЂР°С‰Р°РµРј РЅР°Р·Р°Рґ
         }
     }
 
@@ -59,47 +63,75 @@ void LexicalAnalyzer::handleDelimiters(char c) {
 Token LexicalAnalyzer::getNextLexeme() {
     std::string word;
     char c;
-    int index = 1; // Переменная для отслеживания индекса
+    int index = 1; // РџРµСЂРµРјРµРЅРЅР°СЏ РґР»СЏ РѕС‚СЃР»РµР¶РёРІР°РЅРёСЏ РёРЅРґРµРєСЃР°
 
     while (inputFile.get(c)) {
         if (isspace(c)) {
-            index++; // Увеличиваем индекс при пробеле
-            continue; // Игнорируем пробелы
+            index++; // РЈРІРµР»РёС‡РёРІР°РµРј РёРЅРґРµРєСЃ РґР»СЏ РїСЂРѕР±РµР»РѕРІ
+            continue; // РРіРЅРѕСЂРёСЂСѓРµРј РїСЂРѕР±РµР»С‹
         }
 
-        if (isalpha(c) || c == '_') { // Начало идентификатора или ключевого слова
+        // РџСЂРѕРІРµСЂРєР° РЅР° РґРІСѓС…СЃРёРјРІРѕР»СЊРЅС‹Р№ РѕРїРµСЂР°С‚РѕСЂ
+        if (c == '.') {
+            char nextChar;
+            if (inputFile.get(nextChar) && nextChar == '.') {
+                // РћР±РЅР°СЂСѓР¶РµРЅ РѕРїРµСЂР°С‚РѕСЂ '..'
+                return Token(TokenType::OPERATOR, "..", index);
+            }
+            else {
+                inputFile.unget(); // Р•СЃР»Рё РЅРµ '..', РІРµСЂРЅСѓС‚СЊ СЃРёРјРІРѕР» РѕР±СЂР°С‚РЅРѕ
+            }
+        }
+
+        // РџСЂРѕРІРµСЂРєР° РЅР° РѕРґРёРЅРѕС‡РЅС‹Рµ РѕРїРµСЂР°С‚РѕСЂС‹
+        if (isOperator(std::string(1, c))) { // РћРїРµСЂР°С‚РѕСЂ
+            return Token(TokenType::OPERATOR, std::string(1, c), index);
+        }
+
+        // Р”РѕР±Р°РІР»СЏРµРј РїСЂРѕРІРµСЂРєСѓ РЅР° РєРѕРјРјРµРЅС‚Р°СЂРёР№
+        if (c == '/') {
+            char nextChar;
+            if (inputFile.get(nextChar) && nextChar == '/') { // РќР°С€Р»Рё РЅР°С‡Р°Р»Рѕ РєРѕРјРјРµРЅС‚Р°СЂРёСЏ "//"
+                while (inputFile.get(c) && c != '\n') {
+                    word += c; // Р§РёС‚Р°РµРј РєРѕРјРјРµРЅС‚Р°СЂРёР№ РґРѕ РєРѕРЅС†Р° СЃС‚СЂРѕРєРё
+                }
+                return Token(TokenType::DESCRIPTIONS, word, index);
+            }
+            else {
+                inputFile.unget(); // Р•СЃР»Рё РЅРµ РєРѕРјРјРµРЅС‚Р°СЂРёР№, РІРѕР·РІСЂР°С‰Р°РµРј СЃРёРјРІРѕР» РѕР±СЂР°С‚РЅРѕ
+            }
+        }
+
+        if (isalpha(c) || c == '_') { // РРґРµРЅС‚РёС„РёРєР°С‚РѕСЂ РёР»Рё РєР»СЋС‡РµРІРѕРµ СЃР»РѕРІРѕ
             word.clear();
             word += c;
             while (inputFile.get(c) && (isalnum(c) || c == '_')) {
                 word += c;
             }
-            inputFile.unget(); // Возвращаем последний символ обратно в поток
+            inputFile.unget(); // Р’РѕР·РІСЂР°С‰Р°РµРј РїРѕСЃР»РµРґРЅРёР№ СЃРёРјРІРѕР» РІ РїРѕС‚РѕРє
             TokenType type = getKeywordOrIdentifier(word);
             return Token(type, word, index);
         }
-        else if (isdigit(c)) { // Начало числа
+        else if (isdigit(c)) { // РљРѕРЅСЃС‚Р°РЅС‚Р° С†РµР»РѕРіРѕ С‡РёСЃР»Р°
             word.clear();
             word += c;
             while (inputFile.get(c) && isdigit(c)) {
                 word += c;
             }
-            inputFile.unget(); // Возвращаем последний символ обратно в поток
+            inputFile.unget(); // Р’РѕР·РІСЂР°С‰Р°РµРј РїРѕСЃР»РµРґРЅРёР№ СЃРёРјРІРѕР» РІ РїРѕС‚РѕРє
             return Token(TokenType::INT_NUM, word, index);
         }
-        else if (isOperator(c)) { // Оператор
-            handleOperators(c);
-            return Token(TokenType::OPERATOR, std::string(1, c), index);
-        }
-        else if (isDelimiter(c)) { // Разделитель
-            handleDelimiters(c);
+        else if (isDelimiter(c)) { // Р Р°Р·РґРµР»РёС‚РµР»СЊ
             return Token(TokenType::DELIMITER, std::string(1, c), index);
         }
         else {
             return Token(TokenType::ERROR, std::string(1, c), index);
         }
     }
-    return Token(TokenType::UNKNOWN, "", index); // Возвращаем UNKNOWN, если конец файла
+    return Token(TokenType::UNKNOWN, "", index); // UNKNOWN С‚РѕРєРµРЅ РІ РєРѕРЅС†Рµ С„Р°Р№Р»Р°
 }
+
+
 
 
 void LexicalAnalyzer::analyze() {
@@ -108,6 +140,6 @@ void LexicalAnalyzer::analyze() {
         tokenList.addToken(token);
     }
 
-    // Печатаем токены, с учетом того, что токены с ошибками будут в конце
+    // РџРµС‡Р°С‚Р°РµРј С‚РѕРєРµРЅС‹, СЃ СѓС‡РµС‚РѕРј С‚РѕРіРѕ, С‡С‚Рѕ С‚РѕРєРµРЅС‹ СЃ РѕС€РёР±РєР°РјРё Р±СѓРґСѓС‚ РІ РєРѕРЅС†Рµ
     tokenList.printTokens(outputFile);
 }
