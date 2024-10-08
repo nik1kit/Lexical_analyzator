@@ -18,14 +18,14 @@ private:
     std::ofstream outputFile;
     TokenList tokenList;
 
-    // Методы для конечного автомата
+    // РњРµС‚РѕРґС‹ РґР»СЏ РєРѕРЅРµС‡РЅРѕРіРѕ Р°РІС‚РѕРјР°С‚Р°
     TokenType getKeywordOrIdentifier(const std::string& lexeme);
     TokenType getNumber(const std::string& lexeme);
-    bool isOperator(char c) const;
+    bool isOperator(const std::string& str) const;
     bool isDelimiter(char c) const;
     void handleOperators(char c);
     void handleDelimiters(char c);
-    Token getNextLexeme(); // Новый метод для получения следующей лексемы
+    Token getNextLexeme(); // РќРѕРІС‹Р№ РјРµС‚РѕРґ РґР»СЏ РїРѕР»СѓС‡РµРЅРёСЏ СЃР»РµРґСѓСЋС‰РµР№ Р»РµРєСЃРµРјС‹
 };
 
 #endif
