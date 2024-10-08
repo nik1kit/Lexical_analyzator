@@ -1,9 +1,12 @@
 #include "TokenList.h"
 #include <iostream>
 
-TokenList::TokenList() {
+TokenList::TokenList() : tokenCount(0) {
     for (int i = 0; i < HASH_TABLE_SIZE; ++i) {
         hashTable[i] = nullptr;
+    }
+    for (int i = 0; i < MAX_TOKENS; ++i) {
+        tokenSequence[i] = nullptr;
     }
 }
 
@@ -11,56 +14,81 @@ TokenList::~TokenList() {
     for (int i = 0; i < HASH_TABLE_SIZE; ++i) {
         delete hashTable[i];
     }
+    for (int i = 0; i < MAX_TOKENS; ++i) {
+        delete tokenSequence[i];
+    }
 }
 
 int TokenList::hashFunction(const std::string& lexeme) const {
     int hash = 0;
     for (char c : lexeme) {
-        hash = (hash * 31 + c) % (HASH_TABLE_SIZE / 2); // Хеш-функция только для основной части таблицы
+        hash = (hash * 31 + c) % (HASH_TABLE_SIZE / 2); // РҐРµС€-С„СѓРЅРєС†РёСЏ С‚РѕР»СЊРєРѕ РґР»СЏ РѕСЃРЅРѕРІРЅРѕР№ С‡Р°СЃС‚Рё С‚Р°Р±Р»РёС†С‹
     }
     return hash;
 }
 
 void TokenList::addToken(const Token& token) {
-    int index;
-
-    if (token.type == TokenType::ERROR) {
-        // Для токенов с ошибками используем вторую половину таблицы
-        index = (HASH_TABLE_SIZE / 2) + (token.lexeme[0] % (HASH_TABLE_SIZE / 2));
-    }
-    else {
-        // Основные токены обрабатываются обычной хеш-функцией
-        index = hashFunction(token.lexeme);
-
-        // Линейное пробирование при коллизии
-        while (hashTable[index] != nullptr && hashTable[index]->lexeme != token.lexeme) {
-            index = (index + 1) % (HASH_TABLE_SIZE / 2); // Пробирование только в пределах первой половины
-        }
+    if (tokenCount < MAX_TOKENS) {
+        tokenSequence[tokenCount] = new Token(token.type, token.lexeme, token.index);
+        tokenCount++;
     }
 
-    // Если ячейка пуста, добавляем новый токен
+    // Р”РѕР±Р°РІР»СЏРµРј РІ С…РµС€-С‚Р°Р±Р»РёС†Сѓ
+    int index = hashFunction(token.lexeme);
+    while (hashTable[index] != nullptr && hashTable[index]->lexeme != token.lexeme) {
+        index = (index + 1) % HASH_TABLE_SIZE; // РџСЂРѕР±РёСЂРѕРІР°РЅРёРµ РїСЂРё РєРѕР»Р»РёР·РёРё
+    }
+
+    // Р•СЃР»Рё СЏС‡РµР№РєР° РїСѓСЃС‚Р°, РґРѕР±Р°РІР»СЏРµРј РЅРѕРІС‹Р№ С‚РѕРєРµРЅ
     if (hashTable[index] == nullptr) {
-        hashTable[index] = new Token(token.type, token.lexeme, index);
+        hashTable[index] = new Token(token.type, token.lexeme, token.index);
     }
 }
 
 void TokenList::printTokens(std::ofstream& outputFile) {
-    // Сначала выводим обычные токены из первой половины таблицы
-    for (int i = 0; i < HASH_TABLE_SIZE / 2; ++i) {
-        if (hashTable[i] != nullptr) {
+    for (int i = 0; i < tokenCount; ++i) {
+        Token* token = tokenSequence[i];
+        if (token != nullptr) {
             std::string tokenType;
-            switch (hashTable[i]->type) {
-            case TokenType::KEYWORD:
-                tokenType = "KEYWORD";
+            switch (token->type) {
+            case TokenType::PROGRAM:
+                tokenType = "PROGRAM";
+                break;
+            case TokenType::BEGIN:
+                tokenType = "BEGIN";
+                break;
+            case TokenType::END:
+                tokenType = "END";
+                break;
+            case TokenType::DESCRIPTIONS:
+                tokenType = "DESCRIPTIONS";
+                break;
+            case TokenType::DESCR:
+                tokenType = "DESCR";
+                break;
+            case TokenType::TYPE:
+                tokenType = "TYPE";
+                break;
+            case TokenType::VARLIST:
+                tokenType = "VARLIST";
+                break;
+            case TokenType::OPERATORS:
+                tokenType = "OPERATORS";
+                break;
+            case TokenType::OP:
+                tokenType = "OP";
+                break;
+            case TokenType::EXPR:
+                tokenType = "EXPR";
+                break;
+            case TokenType::SIMPLEEXPR:
+                tokenType = "SIMPLEEXPR";
                 break;
             case TokenType::ID_NAME:
                 tokenType = "ID_NAME";
                 break;
             case TokenType::INT_NUM:
                 tokenType = "INT_NUM";
-                break;
-            case TokenType::FLOAT_NUM:
-                tokenType = "FLOAT_NUM";
                 break;
             case TokenType::OPERATOR:
                 tokenType = "OPERATOR";
@@ -70,19 +98,22 @@ void TokenList::printTokens(std::ofstream& outputFile) {
                 break;
             case TokenType::ERROR:
                 tokenType = "ERROR";
-                continue;  // Пропускаем добавление этого токена в хеш-таблицу
+                continue;  // Skip adding this token to the hash table
             default:
                 tokenType = "UNKNOWN";
                 break;
             }
-            outputFile << tokenType << " | " << hashTable[i]->lexeme << " | " << hashTable[i]->index << std::endl;
+            outputFile << tokenType << " | " << token->lexeme << " | " << i + 1 << std::endl;
         }
     }
     outputFile << "\n";
-    // Затем выводим токены с ошибками из второй половины таблицы
+
+    // Print tokens with errors from the second half of the hash table
     for (int i = HASH_TABLE_SIZE / 2; i < HASH_TABLE_SIZE; ++i) {
-        if (hashTable[i] != nullptr) {
-            outputFile << "ERROR" << " | " << hashTable[i]->lexeme << " | " << hashTable[i]->index << std::endl;
+        Token* token = tokenSequence[i];
+        if (tokenSequence[i] != nullptr && token->type == TokenType::ERROR) {
+            outputFile << "ERROR" << " | " << token->lexeme << " | " << i + 1 << std::endl;
         }
     }
 }
+
