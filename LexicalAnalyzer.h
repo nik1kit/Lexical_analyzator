@@ -1,11 +1,9 @@
-#ifndef LEXICAL_ANALYZER_H
-#define LEXICAL_ANALYZER_H
+#ifndef LEXICALANALYZER_H
+#define LEXICALANALYZER_H
 
-#include <iostream>
 #include <fstream>
 #include <string>
 #include "TokenList.h"
-#include "Token.h"
 
 class LexicalAnalyzer {
 public:
@@ -18,14 +16,14 @@ private:
     std::ofstream outputFile;
     TokenList tokenList;
 
-    // Методы для конечного автомата
+    Token getNextLexeme();
     TokenType getKeywordOrIdentifier(const std::string& lexeme);
     TokenType getNumber(const std::string& lexeme);
     bool isOperator(const std::string& str) const;
     bool isDelimiter(char c) const;
     void handleOperators(char c);
     void handleDelimiters(char c);
-    Token getNextLexeme(); // Новый метод для получения следующей лексемы
+    bool isValidIdentifier(const std::string& word) const; // Объявление функции
 };
 
-#endif
+#endif // LEXICALANALYZER_H
