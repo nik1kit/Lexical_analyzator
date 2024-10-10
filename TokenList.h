@@ -20,7 +20,7 @@ private:
     Token* hashTable[HASH_TABLE_SIZE];
 
     // Новый массив для хранения токенов в порядке их появления
-    static const int MAX_TOKENS = 1000; // Максимальное количество токенов
+    static const int MAX_TOKENS = 10000; // Максимальное количество токенов
     Token* tokenSequence[MAX_TOKENS];
     int tokenCount; // Счетчик количества добавленных токенов
 };
