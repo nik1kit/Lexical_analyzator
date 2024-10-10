@@ -12,16 +12,20 @@ enum class TokenType {
     DESCR,          // Descr -> Type VarList
     TYPE,           // Type -> INTEGER
     VARLIST,        // VarList -> Id | Id , VarList
-    OPERATORS,      // Operators -> Op | Op Operators
-    OP,             // Op -> Id = Expr | FOR Id = Expr TO Expr DO Operators
-    EXPR,           // Expr -> SimpleExpr | SimpleExpr + Expr | SimpleExpr - Expr
-    SIMPLEEXPR,     // SimpleExpr -> Id | Const | ( Expr )
-    ID_NAME,        // Id -> id_name
-    INT_NUM,        // Const -> int_num
-    OPERATOR,       // Operators and assignment: +, -, *, =, etc.
-    DELIMITER,      // Delimiters like parentheses, semicolons, etc.
-    ERROR,          // Errors in lexical analysis
-    UNKNOWN         // Unknown token
+    OP,             // Fortran: FOR
+    EXPR,           // To
+    OPERATORS,      // Do
+    ID_NAME,        // Идентификатор
+    INT_NUM,        // Целое число
+    OPERATOR,       // Операторы
+    DELIMITER,      // Разделители
+    ERROR,          // Ошибки
+    IF,             // If statement
+    THEN,           // Then statement
+    UNKNOWN,        // Неизвестный токен
+    SIMPLEEXPR,
+    PROGRAM_ID,
+    END_ID
 };
 
 class Token {
@@ -29,7 +33,7 @@ public:
     TokenType type;
     std::string lexeme;
     int index;
-    Token() : type(TokenType::UNKNOWN), lexeme(""), index(-1) {} 
+    Token() : type(TokenType::UNKNOWN), lexeme(""), index(-1) {}
 
     Token(TokenType t, const std::string& lex, int idx) : type(t), lexeme(lex), index(idx) {}
 };
