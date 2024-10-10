@@ -1,123 +1,32 @@
-PROGRAM | program | 1
-ID_NAME | n | 2
-DELIMITER | ; | 3
-ID_NAME | var | 4
-ID_NAME | i | 5
-DELIMITER | , | 6
-ID_NAME | imax | 7
-OPERATOR | : | 8
-TYPE | integer | 9
-DELIMITER | ; | 10
-ID_NAME | a | 11
-OPERATOR | : | 12
-ID_NAME | array | 13
-DELIMITER | [ | 14
-INT_NUM | 1 | 15
-OPERATOR | .. | 16
-INT_NUM | 10 | 17
-DELIMITER | ] | 18
-ID_NAME | of | 19
-TYPE | integer | 20
-DELIMITER | ; | 21
-BEGIN | begin | 22
-ID_NAME | randomize | 23
-DELIMITER | ; | 24
-OP | for | 25
-ID_NAME | i | 26
-OPERATOR | : | 27
-OPERATOR | = | 28
-INT_NUM | 1 | 29
-EXPR | to | 30
-INT_NUM | 10 | 31
-OPERATORS | do | 32
-ID_NAME | a | 33
-DELIMITER | [ | 34
-ID_NAME | i | 35
-DELIMITER | ] | 36
-OPERATOR | : | 37
-OPERATOR | = | 38
-ID_NAME | random | 39
-DELIMITER | ( | 40
-INT_NUM | 100 | 41
-DELIMITER | ) | 42
-DELIMITER | ; | 43
-OP | for | 44
-ID_NAME | i | 45
-OPERATOR | : | 46
-OPERATOR | = | 47
-INT_NUM | 1 | 48
-EXPR | to | 49
-INT_NUM | 10 | 50
-OPERATORS | do | 51
-ID_NAME | write | 52
-DELIMITER | ( | 53
-ID_NAME | a | 54
-DELIMITER | [ | 55
-ID_NAME | i | 56
-DELIMITER | ] | 57
-DELIMITER | , | 58
-DELIMITER | ' | 59
-DELIMITER | ' | 60
-DELIMITER | ) | 61
-DELIMITER | ; | 62
-OPERATOR | / | 63
-OPERATOR | / | 64
-ID_NAME | its | 65
-ID_NAME | comment | 66
-ID_NAME | imax | 67
-OPERATOR | : | 68
-OPERATOR | = | 69
-INT_NUM | 1 | 70
-DELIMITER | ; | 71
-ID_NAME | ggvp | 73
-DELIMITER | ; | 74
-OP | for | 75
-ID_NAME | i | 76
-OPERATOR | : | 77
-OPERATOR | = | 78
-INT_NUM | 2 | 79
-EXPR | to | 80
-INT_NUM | 10 | 81
-OPERATORS | do | 82
-ID_NAME | if | 83
-ID_NAME | a | 84
-DELIMITER | [ | 85
-ID_NAME | i | 86
-DELIMITER | ] | 87
-OPERATOR | > | 88
-ID_NAME | a | 89
-DELIMITER | [ | 90
-ID_NAME | imax | 91
-DELIMITER | ] | 92
-ID_NAME | then | 93
-ID_NAME | imax | 94
-OPERATOR | : | 95
-OPERATOR | = | 96
-ID_NAME | i | 97
-DELIMITER | ; | 98
-ID_NAME | write | 99
-DELIMITER | ( | 100
-DELIMITER | ' | 101
-ID_NAME | a | 102
-DELIMITER | [ | 103
-DELIMITER | ' | 104
-DELIMITER | , | 105
-ID_NAME | imax | 106
-DELIMITER | , | 107
-DELIMITER | ' | 108
-DELIMITER | ] | 109
-OPERATOR | = | 110
-DELIMITER | ' | 111
-DELIMITER | , | 112
-ID_NAME | a | 113
-DELIMITER | [ | 114
-ID_NAME | imax | 115
-DELIMITER | ] | 116
-DELIMITER | ) | 117
-DELIMITER | ; | 118
-ID_NAME | halt | 119
-DELIMITER | ; | 120
-END | end | 121
-DELIMITER | . | 122
+PROGRAM_ID | Example | 0
+DESCRIPTIONS | INTEGER a,b,c | 1
+DESCRIPTIONS | INTEGER x,y,z | 2
+OP | a = 10 | 3
+OP | b = 20 | 4
+OP | x = 5 | 5
+EXPR | a + b | 6
+EXPR | x + 2 | 7
+EXPR | y - 2 | 8
+DESCRIPTIONS | INTEGER i | 9
+DESCRIPTIONS | INTEGER array | 14
+OP | array = (/1, 2, 3, 4, 5/) | 15
+BEGIN | do | 16
+OP | i = 1, 10, 2 | 17
+ID_NAME | print | 18
+DELIMITER | , | 20
+ID_NAME | i | 21
+END | end do | 22
+ID_NAME | WRITE | 23
+DELIMITER | ) | 27
+DELIMITER | " | 28
+ID_NAME | Result | 29
+ID_NAME | z | 32
+END_ID | Example | 33
 
-ERROR | @ | 72
+ERROR | INTEGER8 | 10
+ERROR | a56 | 11
+ERROR | xz_ | 12
+ERROR | // | 13
+ERROR | * | 19
+ERROR | * | 24
+ERROR | * | 26
