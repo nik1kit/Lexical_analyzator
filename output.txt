@@ -1,32 +1,35 @@
-PROGRAM_ID | Example | 0
-DESCRIPTIONS | INTEGER a,b,c | 1
-DESCRIPTIONS | INTEGER x,y,z | 2
-OP | a = 10 | 3
-OP | b = 20 | 4
-OP | x = 5 | 5
-EXPR | a + b | 6
-EXPR | x + 2 | 7
-EXPR | y - 2 | 8
-DESCRIPTIONS | INTEGER i | 9
-DESCRIPTIONS | INTEGER array | 14
-OP | array = (/1, 2, 3, 4, 5/) | 15
-BEGIN | do | 16
-OP | i = 1, 10, 2 | 17
-ID_NAME | print | 18
-DELIMITER | , | 20
-ID_NAME | i | 21
-END | end do | 22
-ID_NAME | WRITE | 23
-DELIMITER | ) | 27
-DELIMITER | " | 28
-ID_NAME | Result | 29
-ID_NAME | z | 32
-END_ID | Example | 33
+PROGRAM | PROGRAM | 0
+BEGIN | Example | 1
+TYPE | INTEGER | 2
+OPERATOR | :: | 3
+ID_NAME | a | 4
+DELIMITER | , | 5
+ID_NAME | b | 6
+ID_NAME | c | 8
+ID_NAME | x | 11
+ID_NAME | y | 13
+ID_NAME | z | 15
+OPERATOR | = | 17
+INT_NUM | 10 | 18
+INT_NUM | 20 | 21
+INT_NUM | 5 | 24
+OPERATOR | + | 28
+INT_NUM | 2 | 34
+OPERATOR | - | 38
+ID_NAME | i | 42
+OPERATOR | / | 46
+ID_NAME | array | 50
+BEGIN | do | 51
+INT_NUM | 1 | 54
+ID_NAME | print | 59
+OPERATOR | * | 60
+END | end | 63
+DELIMITER | ' | 68
+ID_NAME | Result | 69
+END | END | 74
+END | Example | 76
 
-ERROR | INTEGER8 | 10
-ERROR | a56 | 11
-ERROR | xz_ | 12
-ERROR | // | 13
-ERROR | * | 19
-ERROR | * | 24
-ERROR | * | 26
+ERROR | INTEGER8 | 43
+ERROR | a56 | 44
+ERROR | xz_ | 45
+ERROR | : | 70
