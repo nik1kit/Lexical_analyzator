@@ -21,7 +21,6 @@ private:
     TokenType getNumber(const std::string& lexeme);
     bool isOperator(const std::string& str) const;
     bool isDelimiter(char c) const;
-    void handleOperators(char c);
     void handleDelimiters(char c);
     bool isValidIdentifier(const std::string& word) const; // Объявление функции
 };
