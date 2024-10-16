@@ -9,16 +9,27 @@ PROGRAM Example
     z = y - 2
     INTEGER :: i
 
+    ENDo
+    END888
+
+    PROGRAM898989
+
+    EnD
+    ProGRAM
+
     INTEGER8
     a56
     xz_
     //
+    @
+    ++
+
 
     INTEGER :: array
-    array = (/1, 2, 3, 4, 5/)
 
-    do i = 1, 10, 2
-        print *, i  
-    end do
-    WRITE(*,*) "Result:", z
+    for i = 1 to i = 10 do
+        i = i + 1
+
 END PROGRAM Example
+
+
