@@ -9,23 +9,14 @@ enum class TokenType {
     BEGIN,          // Begin -> PROGRAM Id
     END,            // End -> END Id
     DESCRIPTIONS,   // Descriptions -> Descr | Descr Descriptions
-    DESCR,          // Descr -> Type VarList
     TYPE,           // Type -> INTEGER
-    VARLIST,        // VarList -> Id | Id , VarList
-    OP,             // Fortran: FOR
-    EXPR,           // To
-    OPERATORS,      // Do
     ID_NAME,        // Идентификатор
     INT_NUM,        // Целое число
     OPERATOR,       // Операторы
     DELIMITER,      // Разделители
     ERROR,          // Ошибки
-    IF,             // If statement
-    THEN,           // Then statement
     UNKNOWN,        // Неизвестный токен
-    SIMPLEEXPR,
-    PROGRAM_ID,
-    END_ID
+    OP,
 };
 
 class Token {
