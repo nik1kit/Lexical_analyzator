@@ -28,16 +28,42 @@ LexicalAnalyzer::~LexicalAnalyzer() {
 }
 
 TokenType LexicalAnalyzer::getKeywordOrIdentifier(const std::string& lexeme) {
-    if (lexeme == "PROGRAM") return TokenType::PROGRAM;
-    if (lexeme == "begin") return TokenType::BEGIN;
-    if (lexeme == "end") return TokenType::END;
-    if (lexeme == "INTEGER") return TokenType::TYPE;
-    if (lexeme == "to") return TokenType::EXPR;
-    if (lexeme == "do") return TokenType::BEGIN;
-    if (lexeme == "if") return TokenType::IF;  
-    if (lexeme == "then") return TokenType::THEN;  
+    const char* keywords[] = { "INTEGER", "do", "to", "for"};
+    TokenType keywordTokens[] = {
+        TokenType::TYPE,
+        TokenType::OP,
+        TokenType::OP,
+        TokenType::OP,
+    };
+
+    for (int i = 0; i < sizeof(keywords) / sizeof(keywords[0]); ++i) {
+        const char* keyword = keywords[i];
+        int len = strlen(keyword);
+
+        // Проверка на длину: если длина не совпадает, это не ключевое слово
+        if (lexeme.length() != len) {
+            continue;
+        }
+
+        // Сравнение посимвольно
+        bool match = true;
+        for (int j = 0; j < len; ++j) {
+            if (lexeme[j] != keyword[j]) {
+                match = false;
+                break;
+            }
+        }
+
+        // Если ключевое слово найдено
+        if (match) {
+            return keywordTokens[i];
+        }
+    }
+
+    // Если не найдено ключевое слово, это идентификатор
     return TokenType::ID_NAME;
 }
+
 
 TokenType LexicalAnalyzer::getNumber(const std::string& lexeme) {
     // Проверяем, является ли строка целым числом
@@ -62,6 +88,7 @@ Token LexicalAnalyzer::getNextLexeme() {
     std::string word;
     char c;
     int index = 1;
+    bool lastWasOperator = false;
 
     while (inputFile.get(c)) {
         if (isspace(c)) {
@@ -71,43 +98,150 @@ Token LexicalAnalyzer::getNextLexeme() {
 
         if (isalpha(c)) { // Идентификатор или ключевое слово
             word.clear();
+            if (c == 'P') {  // Возможное начало слова "PROGRAM"
+                std::string programWord = "PROGRAM";
+                bool isProgram = true;
+                std::string potential_error;
+
+                for (size_t i = 1; i < programWord.length(); i++) {
+                    potential_error += c;
+                    if (!inputFile.get(c) || c != programWord[i]) {
+                        isProgram = false;
+                        break;
+                    }
+                }
+
+                if (isProgram) {  // Если слово "PROGRAM" было считано
+                    inputFile.get(c);  // Считываем следующий символ после слова "PROGRAM"
+                    if (isspace(c) || c == ':' || c == EOF) {  // Проверяем на пробел, разделитель или конец файла
+                        std::string id;
+                        if (inputFile >> id && isValidIdentifier(id)) {
+                            tokenList.addToken(Token(TokenType::PROGRAM, "PROGRAM", index));
+                            Token nextToken = Token(TokenType::BEGIN, id, index + 1);
+                            return nextToken;
+                        }
+                        else {
+                            return Token(TokenType::ERROR, id, index);  // Ошибка, если идентификатор невалидный
+                        }
+                    }
+                    else {
+                        std::string errorWord = "PROGRAM" + std::string(1, c);  // Добавляем первый некорректный символ
+
+                        // Собираем оставшиеся некорректные символы до пробела или конца строки
+                        while (inputFile.get(c) && !isspace(c) && c != EOF) {
+                            errorWord += c;
+                        }
+
+                        return Token(TokenType::ERROR, errorWord, index);  // Возвращаем полное некорректное слово как ошибку
+                    }
+
+                }
+                else {
+                    potential_error += c;
+                    // Считываем оставшиеся некорректные символы
+                    while (inputFile.get(c) && !isspace(c) && c != EOF) {
+                        potential_error += c;
+                    }
+                    if (isValidIdentifier(potential_error))
+                        return Token(TokenType::ID_NAME, potential_error, index);
+                    return Token(TokenType::ERROR, potential_error, index);  // Возвращаем полное некорректное слово как ошибку
+                }
+            }
+
+            if (c == 'E') {  // Возможное начало конструкции "END PROGRAM"
+                std::string endWord = "END";
+                bool isEnd = true;
+                std::string potential_error;
+                for (size_t i = 1; i < endWord.length(); i++) {
+                    potential_error += c;
+                    if (!inputFile.get(c) || c != endWord[i]) {
+                        isEnd = false;
+                        break;
+                    }
+                }
+                if (isEnd) {  // Если слово "END" было считано
+                    inputFile.get(c);  // Считываем следующий символ
+                    if (isspace(c) || c == ':' || c == EOF) {  // Проверяем на пробел, разделитель или конец файла
+                        std::string programWord = "PROGRAM";
+                        bool isProgram = true;
+                        std::string potential_error;
+
+                        for (size_t i = 0; i < programWord.length(); i++) {
+                            potential_error += c;
+                            if (!inputFile.get(c) || c != programWord[i]) {
+                                isProgram = false;
+                                break;
+                            }
+                        }
+
+                        if (isProgram) {  // Если это действительно "END PROGRAM"
+                            inputFile.get(c);  // Считываем следующий символ после "PROGRAM"
+                            if (isspace(c) || c == ':' || c == EOF) {  // Проверяем на пробел, разделитель или конец файла
+                                std::string id;
+                                if (inputFile >> id && isValidIdentifier(id)) {
+                                    tokenList.addToken(Token(TokenType::END, "END", index));
+                                    tokenList.addToken(Token(TokenType::PROGRAM, "PROGRAM", index + 1));
+                                    Token thirdToken = Token(TokenType::END, id, index + 2);
+                                    return thirdToken;
+                                }
+                                else {
+                                    return Token(TokenType::ERROR, id, index); // Ошибка, если идентификатор невалидный
+                                }
+                            }
+                            else {
+                                tokenList.addToken(Token(TokenType::END, "END", index));
+                                std::string errorWord = "PROGRAM" + std::string(1, c);  // Добавляем первый некорректный символ
+
+                                // Собираем оставшиеся некорректные символы до пробела или конца строки
+                                while (inputFile.get(c) && !isspace(c) && c != EOF) {
+                                    errorWord += c;
+                                }
+
+                                return Token(TokenType::ERROR, errorWord, index);  // Возвращаем полное некорректное слово как ошибку
+                            }
+                        }
+                        else {
+                            tokenList.addToken(Token(TokenType::END, "END", index));
+                            potential_error += c;
+                            // Считываем оставшиеся некорректные символы
+                            while (inputFile.get(c) && !isspace(c) && c != EOF) {
+                                potential_error += c;
+                            }
+                            if (isValidIdentifier(potential_error))
+                                return Token(TokenType::ID_NAME, potential_error, index);
+                            return Token(TokenType::ERROR, potential_error, index);  // Возвращаем полное некорректное слово как ошибку
+                        }
+                    }
+                    else {
+                        std::string errorWord = "END" + std::string(1, c);  // Добавляем первый некорректный символ
+
+                        // Собираем оставшиеся некорректные символы до пробела или конца строки
+                        while (inputFile.get(c) && !isspace(c) && c != EOF) {
+                            errorWord += c;
+                        }
+
+                        return Token(TokenType::ERROR, errorWord, index);  // Возвращаем полное некорректное слово как ошибку
+                    }
+                }
+                else {
+                    potential_error += c;
+                    // Считываем оставшиеся некорректные символы
+                    while (inputFile.get(c) && !isspace(c) && c != EOF) {
+                        potential_error += c;
+                    }
+                    if (isValidIdentifier(potential_error))
+                        return Token(TokenType::ID_NAME, potential_error, index);
+                    return Token(TokenType::ERROR, potential_error, index);  // Возвращаем полное некорректное слово как ошибку
+                }
+            }
+
             word += c;
             while (inputFile.get(c) && (isalnum(c) || c == '_')) {
                 word += c;
             }
             inputFile.unget(); // Возвращаем последний символ в поток
 
-            // Проверка на ключевое слово PROGRAM
-            if (word == "PROGRAM") {
-                std::string id;
-                if (inputFile >> id && isValidIdentifier(id)) {
-                    // Сначала возвращаем токен PROGRAM
-                    tokenList.addToken(Token(TokenType::PROGRAM, "PROGRAM", index));
-                    // Следующий токен будет BEGIN с идентификатором
-                    Token nextToken = Token(TokenType::BEGIN, id, index + 1);
-                    return nextToken;
-                }
-                else {
-                    return Token(TokenType::ERROR, id, index); // Ошибка, если идентификатор невалидный
-                }
-            }
 
-            // Проверка на конструкцию END PROGRAM
-            if (word == "END") {
-                std::string nextWord;
-                if (inputFile >> nextWord && nextWord == "PROGRAM") {
-                    std::string id;
-                    if (inputFile >> id && isValidIdentifier(id)) {
-                        tokenList.addToken(Token(TokenType::END, "END", index));
-                        tokenList.addToken(Token(TokenType::PROGRAM, "PROGRAM", index + 1));
-                        Token thirdToken = Token(TokenType::END, id, index + 2);
-                        return thirdToken;
-                    }
-                    else {
-                        return Token(TokenType::ERROR, id, index); // Ошибка, если идентификатор невалидный
-                    }
-                }
-            }
 
             // Проверка на идентификатор
             if (isValidIdentifier(word)) {
@@ -118,7 +252,6 @@ Token LexicalAnalyzer::getNextLexeme() {
                 return Token(TokenType::ERROR, word, index);
             }
         }
-
         else if (isdigit(c)) { // Константа целого числа
             word.clear();
             word += c;
@@ -129,14 +262,22 @@ Token LexicalAnalyzer::getNextLexeme() {
             return Token(TokenType::INT_NUM, word, index);
         }
 
-        else if (c == ':' && inputFile.peek() == ':') { // Оператор ::
-            inputFile.get(c); // Пропускаем второй двоеточие
-            return Token(TokenType::OPERATOR, "::", index);
-        }
 
-        else if (c == '=' || c == '+' || c == '-' || c == '*' || c == '/') { // Операторы
+
+        else if (c == '=' || c == '+' || c == '-') {  // Операторы
+            if (lastWasOperator) {
+                return Token(TokenType::ERROR, "Consecutive operators", index);  // Если два оператора подряд, возвращаем ошибку
+            }
+            lastWasOperator = true;  // Устанавливаем флаг, что последний символ был оператором
             word = c;
-            return Token(TokenType::OPERATOR, word, index);
+
+            if (inputFile.peek() == c && (c == '+' || c == '-')) {  // Проверяем на ++ или --
+                inputFile.get();  // Считываем второй оператор
+                word += c;
+                return Token(TokenType::ERROR, word, index);  // Возвращаем ошибку для ++ или --
+            }
+
+            return Token(TokenType::OPERATOR, word, index);  // Возвращаем оператор
         }
 
         else if (isDelimiter(c)) { // Разделители
@@ -161,13 +302,11 @@ Token LexicalAnalyzer::getNextLexeme() {
 
 
 
-
 void LexicalAnalyzer::analyze() {
     Token token;
     while ((token = getNextLexeme()).type != TokenType::UNKNOWN) {
         tokenList.addToken(token);
     }
 
-    // Печатаем токены, с учетом того, что токены с ошибками будут в конце
     tokenList.printTokens(outputFile);
 }
